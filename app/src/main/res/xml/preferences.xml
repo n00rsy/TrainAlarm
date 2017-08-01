@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Alarm Settings">
+
+        <RingtonePreference
+            android:key="ringetone_preference"
+            android:title="Alarn Tone"
+            android:summary="@string/pref_ringtone"
+            android:ringtoneType="alarm"
+            android:defaultValue="content://settings/system/notification_sound"/>
+
+        <CheckBoxPreference
+            android:key="vibrate_preference"
+            android:title="Vibrate"
+            android:defaultValue="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Advanced">
+
+        <CheckBoxPreference
+            android:key="battery_saver_preference"
+            android:title="Battery Saver"
+            android:summary="Less accurate GPS tracking for reduced battery consumption" />
+
+        <EditTextPreference
+            android:defaultValue="1"
+            android:key="station_radius_preference"
+            android:title="Station Radius (miles)"
+            android:summary="The distance from which the alarm will be triggered"
+            android:inputType="numberDecimal"
+            />
+
+        <EditTextPreference
+            android:defaultValue="10"
+            android:key="update_interval_preference"
+            android:title="Update Interval (seconds)"
+            android:summary="Time between location updates. It is recommended not to change this value"
+            android:inputType="number"
+            />
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
