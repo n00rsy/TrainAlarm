@@ -3,6 +3,7 @@ package com.noorsy.lightbulb.trainalarm;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -62,6 +63,11 @@ public class MonitoringActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        Util u = new Util();
+        LatLng location = u.getLatLngFromString(d,this,Locale.getDefault());
+
+        /*
         Address address = null;
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
@@ -75,12 +81,10 @@ public class MonitoringActivity extends AppCompatActivity implements OnMapReadyC
         //double lng =address.getLongitude();
         LatLng location = new LatLng(address.getLatitude(), address.getLongitude());
         Log.d("TAG",location.toString());
-
+*/
         mMap.addMarker(new MarkerOptions().position(location).title("Destination"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
-
-        // Zoom in, animating the camera.
         //map.animateCamera(CameraUpdateFactory.zoomTo(14), 2000, null);
     }
 
