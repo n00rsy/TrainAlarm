@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -22,9 +23,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.Manifest;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -134,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
                     Snackbar.make(getWindow().getDecorView().getRootView(), "You must enable location services for GPS tracking.", Snackbar.LENGTH_SHORT)
                             .setAction("Action", null).show();
+
                 }
                 return;
             }

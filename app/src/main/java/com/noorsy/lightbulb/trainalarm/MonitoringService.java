@@ -17,10 +17,17 @@ import android.util.Log;
 import android.app.Service;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
 import android.Manifest;
 
 import java.util.Locale;
@@ -30,7 +37,7 @@ import java.util.Locale;
  */
 
 
-public class MonitoringService extends IntentService implements LocationListener  {
+public class MonitoringService extends IntentService  {
 
     public MonitoringService() {
         super("MonitoringService");
@@ -38,13 +45,50 @@ public class MonitoringService extends IntentService implements LocationListener
 
     private static final int MY_PERMISSION_ACCESS_COARSE_LOCATION = 11;
     private static final int MY_PERMISSION_ACCESS_FINE_LOCATION = 12;
+    private static final int LOCATION_INTERVAL = 1000;
+    private static final float LOCATION_DISTANCE = 10f;
 
-    String d;
+    //String d;
     SharedPreferences prefs;
     public boolean arrived = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationManager mLocationManager = null;
+    private LocationCallback mLocationCallback;
     Location mLastLocation;
+    Location destination;
+    double stationRadiusMeters;
+    float [] dist = new float[1];
+    String TAG="TAG";
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
+        String TAG = "TAG";
+        Log.d(TAG, "onCreate");
+        
+        if (mLocationManager == null) {
+            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        }
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[1]);
+        } catch (java.lang.SecurityException ex) {
+            Log.d(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+        }
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[0]);
+        } catch (java.lang.SecurityException ex) {
+            Log.d(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+        }
+    }
+
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -61,34 +105,101 @@ public class MonitoringService extends IntentService implements LocationListener
                 Integer updateInterval = Integer.parseInt(prefs.getString("update_interval_preference", "10"));
 
                 updateInterval = updateInterval * 1000;
+                stationRadiusMeters = stationRadius*1609.344;
                 arrived = false;
 
-            while (!arrived){
-                Log.d("TAG","CHECKING LOCATION");
 
-                Thread.sleep(updateInterval);
-            }
             //Log.d("TAG", d);
         }
-        catch (InterruptedException e) {
+        catch (Error e) {
             // Restore interrupt status.
             Thread.currentThread().interrupt();
         }
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         super.onStartCommand(intent, startId, startId);
-        d =intent.getStringExtra("DESTINATION");
+        String d =intent.getStringExtra("DESTINATION");
         Util u = new Util();
+
         LatLng location = u.getLatLngFromString(d,this,Locale.getDefault());
+        destination = new Location(LocationManager.GPS_PROVIDER);
+        destination.setLatitude(location.latitude);
+        destination.setLongitude(location.longitude);
+
         Log.d("TAG", "MONITORING SERVICE ONSTARTCOMMAND METHOD:"+location.toString());
         return START_STICKY;
+        
     }
 
     @Override
-    public void onLocationChanged(Location location)     {
-        // do stuff here with location object
+    public IBinder onBind(Intent arg0)
+    {
+        return null;
     }
 
+    private class LocationListener implements android.location.LocationListener
+    {
+        String TAG="TAG";
+        Location mLastLocation;
+
+        public LocationListener(String provider)
+        {
+            Log.d(TAG, "LocationListener " + provider);
+            mLastLocation = new Location(provider);
+        }
+
+        @Override
+        public void onLocationChanged(Location location)
+        {
+            Log.d(TAG, "onLocationChanged: " + location);
+            mLastLocation.set(location);
+            /*
+            double lat1 = (double)mLastLocation.getLatitude() ;
+            double lng1 = ((double)mLastLocation.getLongitude());
+            double lat2 = ((double)destination.getLatitude());
+            double lng2 = ((double)destination.getLongitude());
+            */
+            //float [] dist = new float[1];
+            Location.distanceBetween((double)mLastLocation.getLatitude(),
+                    (double)mLastLocation.getLongitude(),
+                    (double)destination.getLatitude(),
+                    (double)destination.getLongitude(), dist);
+
+            if(dist[0]<=stationRadiusMeters){
+                Log.d("TAG","ARRIVED, SOUNDING ALARM");
+            }
+            Log.d("TAG","DISTANCE TO DESTINATION: "+dist[0]);
+        }
+
+        @Override
+        public void onProviderDisabled(String provider)
+        {
+            Log.d(TAG, "onProviderDisabled: " + provider);
+        }
+
+        @Override
+        public void onProviderEnabled(String provider)
+        {
+            Log.d(TAG, "onProviderEnabled: " + provider);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras)
+        {
+            Log.d(TAG, "onStatusChanged: " + provider);
+        }
+    }
+
+    LocationListener[] mLocationListeners = new LocationListener[] {
+            new LocationListener(LocationManager.GPS_PROVIDER),
+            new LocationListener(LocationManager.NETWORK_PROVIDER)
+    };
+
+    @Override
+    public void onDestroy(){
+        Log.d(TAG, "MONITORING SERVICE DESTROYED");
+    }
 }
 

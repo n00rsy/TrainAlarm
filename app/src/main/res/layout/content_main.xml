@@ -35,17 +35,22 @@
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"
-        android:background="@color/colorPrimary" />
-
+        android:background="@color/colorPrimary"/>
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="50dp"
+        android:layout_width="260dp"
+        android:layout_height="50dp"
         android:text="Start Sleep"
+        android:textSize="15sp"
+        android:textColor="#ffffff"
         android:id="@+id/button_start"
-        android:layout_gravity="center_horizontal"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
         android:clickable="true"
-        style = "@style/Widget.AppCompat.Button.Borderless"/>
-
+        android:background="@drawable/start_button"
+/>
+</RelativeLayout>
 </LinearLayout>
 

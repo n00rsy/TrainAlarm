@@ -1,10 +1,12 @@
 package com.noorsy.lightbulb.trainalarm;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -53,9 +55,8 @@ public class MonitoringActivity extends AppCompatActivity implements OnMapReadyC
         final Button cancelButton = (Button)findViewById(R.id.button_cancel);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                stopService(new Intent(MonitoringActivity.this, MonitoringService.class));
-                Intent i = new Intent(MonitoringActivity.this, MainActivity.class);
-                MonitoringActivity.this.startActivity(i);
+
+                backDialog();
             }
         });
     }
@@ -65,7 +66,7 @@ public class MonitoringActivity extends AppCompatActivity implements OnMapReadyC
         mMap = googleMap;
 
         Util u = new Util();
-        LatLng location = u.getLatLngFromString(d,this,Locale.getDefault());
+        LatLng location = u.getLatLngFromString(d, this, Locale.getDefault());
 
         /*
         Address address = null;
@@ -89,8 +90,38 @@ public class MonitoringActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     @Override
+    public void onBackPressed()
+    {
+        backDialog();
+    }
+
+    @Override
     public void onDestroy(){
+        Intent serviceIntent = new Intent(MonitoringActivity.this, MonitoringService.class);
+        stopService(serviceIntent);
+        Log.d("TAG","MONITORING ACTIVITY ONDESTROY METHOD CALLED");
         super.onDestroy();
-        stopService(new Intent(this, MonitoringService.class));
+
+    }
+
+    void backDialog(){
+        AlertDialog alertDialog = new AlertDialog.Builder(MonitoringActivity.this).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage("Are you sure you want to exit?");
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Stay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Exit",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        stopService(new Intent(MonitoringActivity.this, MonitoringService.class));
+                        Intent i = new Intent(MonitoringActivity.this, MainActivity.class);
+                        MonitoringActivity.this.startActivity(i);
+                    }
+                });
+        alertDialog.show();
     }
 }
